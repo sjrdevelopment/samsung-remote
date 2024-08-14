@@ -353,19 +353,81 @@ void noTone(uint8_t aPinNumber){
 #include <IRremote.hpp> // include the library
 
 
-const int buttonPin = 13;
-int buttonState = 0;  // variable for reading the pushbutton status
+
+const int buttonPin_A = 13;
+int buttonState_A = 0;  // variable for reading the pushbutton status
+int pressCount = 0;
+int iterationCount = 0;
 
 void setup() {
    IrSender.begin(); // Start with IR_SEND_PIN -which is defined in PinDefinitionsAndMore.h- as send pin and enable feedback LED at default feedback LED pin
-   pinMode(buttonPin, INPUT);
+     Serial.begin(115200);
+  pinMode(buttonPin_A, INPUT);
 }
 
 void loop() {
- buttonState = digitalRead(buttonPin);
+  buttonState_A = digitalRead(buttonPin_A);
 	//for (int i = 0; i < 3; i++) {
-	if (buttonState == HIGH) {
-    	IrSender.sendSamsung(0x7, 0x12, 3);
-      delay(1000); //5 second delay between each signal burst
+  
+  if (buttonState_A == HIGH) {
+    pressCount++;
+    delay(200);
 	}
+
+  else if (pressCount > 0 && iterationCount < 30) {
+    iterationCount++;
+    delay(50);
+  }
+	if (iterationCount == 30) {
+    Serial.println("final count: ");
+    Serial.println(pressCount);
+    
+
+    switch (pressCount) {
+      case 1:
+        Serial.println("Power");
+        IrSender.sendSamsung(0x7, 0x2, 3);
+        break;
+      case 2:
+        Serial.println("AppleTV");
+       
+        IrSender.sendSamsung(0x7, 0x1, 1);
+        delay(1000);
+        IrSender.sendSamsung(0x7, 0x62, 1);
+    delay(1000);
+        IrSender.sendSamsung(0x7, 0x68, 1);
+        break;
+      case 3:
+        Serial.println("Vol Up");
+        IrSender.sendSamsung(0x7, 0x7, 3);
+        break;
+      case 4:
+        Serial.println("Vol Dn");
+        IrSender.sendSamsung(0x7, 0xB, 3);
+        break;
+      case 5:
+        Serial.println("Normal TV"); 
+        IrSender.sendSamsung(0x7, 0x1, 3);
+        delay(1000);
+        IrSender.sendSamsung(0x7, 0x65, 3);
+        delay(1000);
+        IrSender.sendSamsung(0x7, 0x68, 3);
+        break;
+      
+      case 6:
+        Serial.println("Chn Up"); 
+        IrSender.sendSamsung(0x7, 0x12, 3);
+        break;
+      case 7:
+        Serial.println("Chn Down"); 
+        IrSender.sendSamsung(0x7, 0x12, 3);
+        break;
+    
+    }
+
+    iterationCount = 0;
+    pressCount = 0;
+    delay(1000); //5 second delay between each signal burst
+  }
+
 }
